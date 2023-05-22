@@ -1,0 +1,134 @@
+.chatbox {
+  width: 300px;
+  height: 75vh;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+}
+
+.messages {
+  flex-grow: 1;
+  margin-bottom: 10px;
+  overflow-y: auto;
+}
+
+.message {
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  padding: 8px;
+  margin-bottom: 10px;
+}
+
+.inputContainer {
+  display: flex;
+  align-items: center;
+}
+
+.inputField {
+  flex-grow: 1;
+  height: 40px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 5px;
+}
+
+.sendButton {
+  height: 40px;
+  margin-left: 10px;
+  background-color: #4caf50;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 0 10px;
+  cursor: pointer;
+}
+
+.sendButton:hover {
+  background-color: #45a049;
+}
+
+.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.joinRoomMessage {
+  color: gray;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.ownMessage {
+  justify-content: flex-start;
+  text-align: left;
+  background-color: #e5f3ea;
+  border-radius: 10px;
+}
+
+.otherMessage {
+  justify-content: flex-end;
+  text-align: right;
+  background-color: #f8d7d9;
+  border-radius: 10px;
+}
+
+/* Chatbox.module.css */
+
+.gameSessionResponseContainer {
+  /* Additional styles for the game session response container */
+  display: flex;
+  flex-direction: column;
+  background-color: #f3f3f3;
+  padding: 10px;
+  text-align: center;
+  border-radius: 5px;
+  margin: 0 auto;
+  width: 80%;
+  align-items: center;
+}
+
+.gameSessionResponse {
+  /* Additional styles for the game session response text */
+  margin-bottom: 10px;
+}
+
+.copyButton {
+  /* Additional styles for the copy button */
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #007bff;
+}
+
+.copyButton:hover {
+  /* Hover effect for the copy button */
+  text-decoration: underline;
+}
+
+.copyButton:focus {
+  /* Focus styles for the copy button */
+  outline: none;
+}
+
+.copyButton svg {
+  /* Styles for the copy icon */
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+  fill: currentColor;
+}
+
+.codeContainer {
+  display: flex;
+  align-items: center;
+}
+
+.gameSessionCode {
+  margin-right: 10px;
+}

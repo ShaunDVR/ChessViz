@@ -1,0 +1,61 @@
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  height: 100vh;
+}
+
+.chessboardWrapper {
+  width: 75vh;
+}
+
+.chatboxWrapper {
+  height: 100%;
+}
+
+.inputWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.inputWrapper input {
+  margin-right: 10px;
+}
+
+.buttonWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.buttonWrapper button {
+  padding: 5px 10px;
+}
+
+@media screen and (max-width: 768px) {
+  .container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .chessboardWrapper {
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 20px;
+  }
+
+  .inputWrapper,
+  .buttonWrapper {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .inputWrapper input,
+  .buttonWrapper button {
+    margin-right: 0;
+    margin-bottom: 10px;
+  }
+}
