@@ -1,8 +1,13 @@
+.pageContainer {
+  height: 100vh;
+}
+
 .container {
+  margin-top: 10vh;
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  height: 100vh;
+  height: 75vh;
 }
 
 .chessboardWrapper {
@@ -33,6 +38,11 @@
 
 .buttonWrapper button {
   padding: 5px 10px;
+}
+
+.switchButtonWrapper {
+  align-self: center;
+  margin-right: 5px;
 }
 
 @media screen and (max-width: 768px) {

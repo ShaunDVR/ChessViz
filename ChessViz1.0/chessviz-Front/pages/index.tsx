@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import { socket } from "../socket/socket";
 
 import Chatbox from "../components/ChatBox";
+import SwitchIcon from "../public/double-arrow-svgrepo-com.svg";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,18 +18,20 @@ interface SelectedPiece {
 }
 
 export default function Home() {
-  const [game, setGame] = useState<Chess>(new Chess());
+  const [game, setGame] = useState<Chess>(() => new Chess());
   const [colorChoice, setColorChoice] = useState<string>("");
-  const [selectedPiece, setSelectedPiece] = useState<SelectedPiece>({
+  const [selectedPiece, setSelectedPiece] = useState<SelectedPiece>(() => ({
     piece: "",
     clickCount: 0,
-  });
-  const [moveSquares, setMoveSquares] = useState<SquareStyles>({});
+  }));
+  const [moveSquares, setMoveSquares] = useState<SquareStyles>(() => ({}));
   const [rightClickedSquares, setRightClickedSquares] = useState<SquareStyles>(
-    {}
+    () => ({})
   );
 
-  const [isConnected, setIsConnected] = useState<boolean>(socket.connected);
+  const [isConnected, setIsConnected] = useState<boolean>(
+    () => socket.connected
+  );
   const [gameSessionRoom, setGameSessionRoom] = useState<string>("");
 
   const [inputValue, setInputValue] = useState<string>();
@@ -69,14 +72,19 @@ export default function Home() {
       console.log("Here's the game session data", gameSessionResponse);
     }
 
-    function onJoinRoom(roomJoinMsg: string) {
+    async function onJoinRoom(roomJoinMsg: string) {
       console.log("Player has joined room: ", roomJoinMsg);
       setGameSessionRoom(roomJoinMsg);
     }
 
     function onColorSet(color: string) {
-      console.log("Setting color to", color);
       setColorChoice(color);
+    }
+
+    async function onColorSwitch() {
+      setColorChoice((prevColorChoice) =>
+        prevColorChoice === "w" ? "b" : "w"
+      );
     }
 
     function onGameReset() {
@@ -89,6 +97,7 @@ export default function Home() {
     socket.on("newGameStart", onNewGameStart);
     socket.on("roomJoin", onJoinRoom);
     socket.on("colorSet", onColorSet);
+    socket.on("colorSwitch", onColorSwitch);
     socket.on("gameReset", onGameReset);
 
     return () => {
@@ -98,6 +107,7 @@ export default function Home() {
       socket.off("newGameStart", onNewGameStart);
       socket.off("roomJoin", onJoinRoom);
       socket.off("colorSet", onColorSet);
+      socket.off("colorSwitch", onColorSwitch);
       socket.off("gameReset", onGameReset);
     };
   }, []);
@@ -112,6 +122,10 @@ export default function Home() {
       socket.emit("gameStart", game.fen());
     }
   }, [game]);
+
+  useEffect(() => {
+    console.log(colorChoice);
+  }, [colorChoice]);
 
   useEffect(() => {
     if (selectedPiece.piece !== "") {
@@ -287,19 +301,15 @@ export default function Home() {
     const clickedPiece = game.get(square).type as Piece;
     const moves = game.moves({ piece: clickedPiece, square: square });
     if (selectedPiece.piece === clickedPiece.concat(square)) {
-      const clickCount = selectedPiece.clickCount + 1;
-      setSelectedPiece({
-        piece: clickedPiece.concat(square),
-        clickCount: Math.min(clickCount, 2),
-      });
+      setSelectedPiece((prevSelectedPiece) => ({
+        ...prevSelectedPiece,
+        clickCount: Math.min(prevSelectedPiece.clickCount + 1, 2),
+      }));
     } else if (moves.length > 0) {
       setSelectedPiece({ piece: clickedPiece.concat(square), clickCount: 0 });
       setMoveSquares({});
     } else {
-      setSelectedPiece({
-        piece: "",
-        clickCount: 0,
-      });
+      setSelectedPiece({ piece: "", clickCount: 0 });
       setMoveSquares({});
     }
   }
@@ -317,20 +327,11 @@ export default function Home() {
     });
   }
 
-  // This only seems to work after the first move, i dont know why
   function isDraggablePiece(piece: Piece, sourceSquare: string): boolean {
-    console.log(
-      game.turn() == colorChoice &&
-        colorChoice == piece.piece.toString().substring(0, 1)
+    return (
+      game.turn() === colorChoice &&
+      colorChoice === piece.piece.toString().substring(0, 1)
     );
-    if (
-      game.turn() == colorChoice &&
-      colorChoice == piece.piece.toString().substring(0, 1)
-    ) {
-      return true;
-    } else {
-      return false;
-    }
   }
 
   function onPieceDragBegin(piece: Piece, sourceSquare: string) {
@@ -348,41 +349,58 @@ export default function Home() {
     });
   }
 
-  return (
-    <div className={styles.container}>
-      <div className={styles.chessboardWrapper}>
-        <Chessboard
-          boardWidth={chessboardHeight}
-          id="BasicBoard"
-          position={game.fen()}
-          onSquareClick={onSquareClick}
-          onPieceDrop={onDrop}
-          onSquareRightClick={onSquareRightClick}
-          onPieceDragBegin={onPieceDragBegin}
-          isDraggablePiece={isDraggablePiece}
-          customSquareStyles={{
-            ...moveSquares,
-          }}
-        />
-      </div>
+  function handleColorSwitch(
+    event: MouseEvent<HTMLButtonElement, MouseEvent>
+  ): void {
+    socket.emit("switchColor", gameSessionRoom);
+  }
 
-      <div className={styles.chatboxWrapper}>
-        <Chatbox gameSessionRoom={gameSessionRoom} />
-      </div>
-      {gameSessionRoom == "" && (
-        <div className={styles.inputWrapper}>
-          <input
-            type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
+  return (
+    <div className={styles.pageContainer}>
+      <div className={styles.container}>
+        <div className={styles.switchButtonWrapper}>
+          {game.fen() ===
+            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" && (
+            <button onClick={handleColorSwitch} style={{ border: "none" }}>
+              <SwitchIcon style={{ height: "6vh", width: "3vw" }} />
+            </button>
+          )}
+        </div>
+        <div className={`${styles.chessboardWrapper}`}>
+          <Chessboard
+            boardWidth={chessboardHeight}
+            id="BasicBoard"
+            position={game.fen()}
+            onSquareClick={onSquareClick}
+            onPieceDrop={onDrop}
+            onSquareRightClick={onSquareRightClick}
+            onPieceDragBegin={onPieceDragBegin}
+            isDraggablePiece={isDraggablePiece}
+            customSquareStyles={{
+              ...moveSquares,
+            }}
+            boardOrientation={colorChoice === "w" ? "white" : "black"}
           />
         </div>
-      )}
-      {gameSessionRoom == "" && (
-        <div className={styles.buttonWrapper}>
-          <button onClick={handleButtonClick}>Join Game</button>
+
+        <div className={styles.chatboxWrapper}>
+          <Chatbox gameSessionRoom={gameSessionRoom} />
         </div>
-      )}
+        {gameSessionRoom === "" && (
+          <div className={styles.inputWrapper}>
+            <input
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+            />
+          </div>
+        )}
+        {gameSessionRoom === "" && (
+          <div className={styles.buttonWrapper}>
+            <button onClick={handleButtonClick}>Join Game</button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

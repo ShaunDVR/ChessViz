@@ -74,6 +74,21 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("switchColor", (roomId) => {
+    console.log(roomId);
+    const gameState = gameStates.get(roomId + "room");
+    if (!gameState) {
+      console.log("Game state not found for the client");
+      return;
+    }
+    if (
+      gameState.fen() ==
+      "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+    ) {
+      io.to(roomId + "room").emit("colorSwitch");
+    }
+  });
+
   socket.on("moveMade", (msg) => {
     console.log(msg);
     const gameState = gameStates.get(msg.roomId + "room");
