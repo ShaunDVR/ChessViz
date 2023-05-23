@@ -113,10 +113,12 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (avoidFirstUseEffectRenderFORDEV.current) {
-      avoidFirstUseEffectRenderFORDEV.current = false;
-      return;
-    }
+    //Work out how to disable in production
+
+    // if (avoidFirstUseEffectRenderFORDEV.current) {
+    //   avoidFirstUseEffectRenderFORDEV.current = false;
+    //   return;
+    // }
     if (!isConnected) {
       socket.connect();
       socket.emit("gameStart", game.fen());
