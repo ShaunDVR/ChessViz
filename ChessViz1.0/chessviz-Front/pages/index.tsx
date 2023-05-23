@@ -3,12 +3,14 @@ import Image from "next/image";
 import { Inter } from "next/font/google";
 import styles from "@/styles/Home.module.css";
 import { Chessboard } from "react-chessboard";
-import { Chess } from "chess.js";
-import { useEffect, useRef, useState } from "react";
+import { Chess, Move, Piece } from "chess.js";
+import { CSSProperties, useEffect, useRef, useState } from "react";
 import { socket } from "../socket/socket";
 
 import Chatbox from "../components/ChatBox";
 import SwitchIcon from "../public/double-arrow-svgrepo-com.svg";
+import { PieceSymbol } from "chess.js";
+import { Square } from "chess.js";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,15 +21,13 @@ interface SelectedPiece {
 
 export default function Home() {
   const [game, setGame] = useState<Chess>(() => new Chess());
-  const [colorChoice, setColorChoice] = useState<string>("");
+  const [colorChoice, setColorChoice] = useState<string>("w");
   const [selectedPiece, setSelectedPiece] = useState<SelectedPiece>(() => ({
     piece: "",
     clickCount: 0,
   }));
-  const [moveSquares, setMoveSquares] = useState<SquareStyles>(() => ({}));
-  const [rightClickedSquares, setRightClickedSquares] = useState<SquareStyles>(
-    () => ({})
-  );
+  const [moveSquares, setMoveSquares] = useState(() => ({}));
+  const [rightClickedSquares, setRightClickedSquares] = useState(() => ({}));
 
   const [isConnected, setIsConnected] = useState<boolean>(
     () => socket.connected
@@ -130,8 +130,8 @@ export default function Home() {
   useEffect(() => {
     if (selectedPiece.piece !== "") {
       const moves = game.moves({
-        piece: selectedPiece.piece.slice(0, 1) as Piece,
-        square: selectedPiece.piece.slice(1),
+        piece: selectedPiece.piece.slice(0, 1) as PieceSymbol,
+        square: selectedPiece.piece.slice(1) as Square,
       });
       futureSight(
         [{ moves: moves, fen: game.fen() }],
@@ -142,7 +142,7 @@ export default function Home() {
     }
   }, [selectedPiece]);
 
-  function makeAMove(move) {
+  function makeAMove(move: any) {
     try {
       const newGame = new Chess(game.fen()); // Create a new instance of Chess using the current game's FEN
       const result = newGame.move(move);
@@ -153,13 +153,13 @@ export default function Home() {
     }
   }
 
-  function onDrop(sourceSquare, targetSquare) {
+  function onDrop(sourceSquare: string, targetSquare: string): boolean {
     if (colorChoice !== game.turn()) {
-      return;
+      return false;
     }
     const move = makeAMove({
-      from: sourceSquare,
-      to: targetSquare,
+      from: sourceSquare as Square,
+      to: targetSquare as Square,
       promotion: "q", // always promote to a queen for example simplicity
     });
 
@@ -179,14 +179,14 @@ export default function Home() {
   }
 
   function futureSight(
-    moves: { moves: ShortMove[]; fen: string }[],
-    highlights: SquareStyles,
+    moves: { moves: any; fen: string }[],
+    highlights: any,
     currTimeStep: number,
     wantedTimeSteps: number
   ) {
-    let nextMoves: { moves: ShortMove[]; fen: string }[] = [];
+    let nextMoves: { moves: any; fen: string }[] = [];
     moves.forEach((gameState) => {
-      gameState.moves.forEach((move) => {
+      gameState.moves.forEach((move: any) => {
         try {
           if (move.slice(-1) !== "+") {
             const newGame = new Chess(gameState.fen);
@@ -206,7 +206,7 @@ export default function Home() {
         }
       });
     });
-    let moveHighlights: SquareStyles = {};
+    let moveHighlights: any = {};
     if (currTimeStep < wantedTimeSteps) {
       moveHighlights = futureSight(
         nextMoves,
@@ -215,9 +215,9 @@ export default function Home() {
         wantedTimeSteps
       );
     }
-    let squareStyles: SquareStyles = { ...moveHighlights };
+    let squareStyles: any = { ...moveHighlights };
     moves.forEach((gameState) => {
-      gameState.moves.forEach((move) => {
+      gameState.moves.forEach((move: any) => {
         if (move.includes("=")) {
           const moveSquare = move.includes("x")
             ? move.substring(2, 4)
@@ -294,11 +294,11 @@ export default function Home() {
     }
   }
 
-  function onSquareClick(square: string) {
+  function onSquareClick(square: Square) {
     if (!game.get(square)?.type) {
       return;
     }
-    const clickedPiece = game.get(square).type as Piece;
+    const clickedPiece = game.get(square as Square).type;
     const moves = game.moves({ piece: clickedPiece, square: square });
     if (selectedPiece.piece === clickedPiece.concat(square)) {
       setSelectedPiece((prevSelectedPiece) => ({
@@ -314,27 +314,32 @@ export default function Home() {
     }
   }
 
-  function onSquareRightClick(square: string) {
+  function onSquareRightClick(square: Square) {
     const colour = "rgba(0, 255, 0, 0.4)";
-    setRightClickedSquares((prevSquares) => {
-      return {
-        ...prevSquares,
-        [square]:
-          prevSquares[square]?.backgroundColor === colour
-            ? undefined
-            : { backgroundColor: colour },
-      };
-    });
-  }
-
-  function isDraggablePiece(piece: Piece, sourceSquare: string): boolean {
-    return (
-      game.turn() === colorChoice &&
-      colorChoice === piece.piece.toString().substring(0, 1)
+    setRightClickedSquares(
+      (prevSquares: Record<Square, CSSProperties | undefined>) => {
+        return {
+          ...prevSquares,
+          [square]:
+            prevSquares[square]?.backgroundColor === colour
+              ? undefined
+              : { backgroundColor: colour },
+        };
+      }
     );
   }
 
-  function onPieceDragBegin(piece: Piece, sourceSquare: string) {
+  function isDraggablePiece(args: {
+    piece: any;
+    sourceSquare: Square;
+  }): boolean {
+    return (
+      game.turn() === colorChoice &&
+      colorChoice === args.piece.toString().substring(0, 1)
+    );
+  }
+
+  function onPieceDragBegin(piece: any, sourceSquare: Square): any {
     setMoveSquares({});
     setRightClickedSquares({});
     setSelectedPiece({
@@ -344,14 +349,12 @@ export default function Home() {
   }
 
   function handleButtonClick() {
-    socket.emit("requestJoinGame", inputValue, (gameStateResponse) => {
+    socket.emit("requestJoinGame", inputValue, (gameStateResponse: string) => {
       console.log(gameStateResponse);
     });
   }
 
-  function handleColorSwitch(
-    event: MouseEvent<HTMLButtonElement, MouseEvent>
-  ): void {
+  function handleColorSwitch(event: React.MouseEvent<HTMLButtonElement>): void {
     socket.emit("switchColor", gameSessionRoom);
   }
 

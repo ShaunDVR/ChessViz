@@ -3,8 +3,10 @@ import { socket } from "../socket/socket";
 import styles from "../styles/Chatbox.module.css";
 import CopyIcon from "../public/copy-icon.svg";
 
-const Chatbox = ({ gameSessionRoom }) => {
-  const [messages, setMessages] = useState([]);
+const Chatbox = ({ gameSessionRoom = "" }) => {
+  const [messages, setMessages] = useState<
+    { sender: string; content: string }[]
+  >([]);
   const [inputValue, setInputValue] = useState("");
   const [gameSessionResponse, setGameSessionResponse] = useState("");
   const [isCopied, setIsCopied] = useState(false);
@@ -20,7 +22,7 @@ const Chatbox = ({ gameSessionRoom }) => {
 
   useEffect(() => {
     // Function to handle receiving new messages
-    const handleNewMessage = (message) => {
+    const handleNewMessage = (message: string) => {
       console.log(message);
       setMessages((prevMessages) => [
         ...prevMessages,
@@ -40,7 +42,7 @@ const Chatbox = ({ gameSessionRoom }) => {
 
   useEffect(() => {
     // Function to handle receiving game session response
-    const handleGameSessionResponse = (response) => {
+    const handleGameSessionResponse = (response: string) => {
       setGameSessionResponse(response);
       setIsCopied(false);
     };
@@ -54,7 +56,9 @@ const Chatbox = ({ gameSessionRoom }) => {
     };
   }, []);
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: {
+    target: { value: React.SetStateAction<string> };
+  }) => {
     setInputValue(e.target.value);
   };
 
