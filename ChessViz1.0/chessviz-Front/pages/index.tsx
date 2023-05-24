@@ -2,15 +2,15 @@ import Head from "next/head";
 import Image from "next/image";
 import { Inter } from "next/font/google";
 import styles from "@/styles/Home.module.css";
-import { Chessboard } from "react-chessboard";
-import { Chess, Move, Piece } from "chess.js";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { socket } from "../socket/socket";
 
+import { Chessboard } from "react-chessboard";
+import { Chess, Move, Piece, PieceSymbol, Square } from "chess.js";
+
 import Chatbox from "../components/ChatBox";
+import SettingsBar from "../components/SettingsBar";
 import SwitchIcon from "../public/double-arrow-svgrepo-com.svg";
-import { PieceSymbol } from "chess.js";
-import { Square } from "chess.js";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -389,6 +389,7 @@ export default function Home() {
         </div>
 
         <div className={styles.chatboxWrapper}>
+          <SettingsBar settings={[{ label: "hello", options: ["hello"] }]} />
           <Chatbox gameSessionRoom={gameSessionRoom} />
         </div>
         {gameSessionRoom === "" && (
