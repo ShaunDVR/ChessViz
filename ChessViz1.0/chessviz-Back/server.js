@@ -7,7 +7,7 @@ const server = http.createServer(app);
 const { Server } = require("socket.io");
 const io = new Server(server, {
   cors: {
-    origin: "https://chessvizsockets.onrender.com",
+    origin: "https://chessviz.onrender.com",
   },
 });
 
