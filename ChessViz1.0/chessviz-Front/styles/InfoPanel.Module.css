@@ -11,9 +11,32 @@
   border-bottom: 1px solid #aaaaaa;
   padding-bottom: 20px;
   margin-bottom: 20px;
+  align-items: center;
 }
 
-.infopanel h2 {
+.infoPanel h2 {
+  text-align: center;
   color: #ffffff;
   font-size: 20px;
+  margin-bottom: 50px;
+}
+
+.inputWrapper {
+  margin-bottom: 10px;
+}
+
+.inputContainer {
+  display: flex;
+  align-items: center;
+}
+
+.inputField {
+  flex-grow: 1;
+  height: 30px;
+  padding: 5px;
+}
+
+.joinButton {
+  height: 30px;
+  padding: 0 10px;
 }

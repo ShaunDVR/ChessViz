@@ -24,16 +24,20 @@ const InfoPanel = (InfoPanelProps: InfoPanelProps) => {
         <div className={styles.section}>
           {InfoPanelProps.gameSessionRoom === "" && (
             <div className={styles.inputWrapper}>
-              <input
-                type="text"
-                value={InfoPanelProps.inputValue}
-                onChange={InfoPanelProps.onInputChange}
-              />
-            </div>
-          )}
-          {InfoPanelProps.gameSessionRoom === "" && (
-            <div className={styles.buttonWrapper}>
-              <button onClick={InfoPanelProps.onButtonClick}>Join Game</button>
+              <div className={styles.inputContainer}>
+                <input
+                  type="text"
+                  value={InfoPanelProps.inputValue}
+                  onChange={InfoPanelProps.onInputChange}
+                  className={styles.inputField}
+                />
+                <button
+                  onClick={InfoPanelProps.onButtonClick}
+                  className={styles.joinButton}
+                >
+                  Join Game
+                </button>
+              </div>
             </div>
           )}
         </div>
