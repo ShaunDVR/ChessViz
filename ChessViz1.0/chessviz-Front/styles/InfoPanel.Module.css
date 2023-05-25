@@ -1,0 +1,19 @@
+.infoPanel {
+  display: flex;
+  flex-direction: column;
+  background-color: #333333;
+  padding: 20px;
+  flex-grow: 1;
+}
+
+.section:not(:last-child) {
+  flex-grow: 1;
+  border-bottom: 1px solid #aaaaaa;
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+}
+
+.infopanel h2 {
+  color: #ffffff;
+  font-size: 20px;
+}

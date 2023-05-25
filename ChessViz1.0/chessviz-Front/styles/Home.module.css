@@ -20,6 +20,11 @@
   height: 100%;
 }
 
+.infoPanelWrapper {
+  display: flex;
+  height: 100%;
+}
+
 .inputWrapper {
   display: flex;
   justify-content: center;

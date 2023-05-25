@@ -11,6 +11,7 @@ import { Chess, Move, Piece, PieceSymbol, Square } from "chess.js";
 import Chatbox from "../components/ChatBox";
 import SettingsBar from "../components/SettingsBar";
 import SwitchIcon from "../public/double-arrow-svgrepo-com.svg";
+import InfoPanel from "@/components/InfoPanel";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -482,23 +483,18 @@ export default function Home() {
         </div>
 
         <div className={styles.chatboxWrapper}>
-          <SettingsBar settings={[{ label: "hello", options: ["hello"] }]} />
+          {/* Unsure if needed right now */}
+          {/* <SettingsBar settings={[{ label: "hello", options: ["hello"] }]} /> */}
           <Chatbox gameSessionRoom={gameSessionRoom} />
         </div>
-        {gameSessionRoom === "" && (
-          <div className={styles.inputWrapper}>
-            <input
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-            />
-          </div>
-        )}
-        {gameSessionRoom === "" && (
-          <div className={styles.buttonWrapper}>
-            <button onClick={handleButtonClick}>Join Game</button>
-          </div>
-        )}
+        <div className={styles.infoPanelWrapper}>
+          <InfoPanel
+            gameSessionRoom={gameSessionRoom}
+            inputValue={inputValue ? inputValue : ""}
+            onInputChange={(e) => setInputValue(e.target.value)}
+            onButtonClick={handleButtonClick}
+          />
+        </div>
       </div>
     </div>
   );
