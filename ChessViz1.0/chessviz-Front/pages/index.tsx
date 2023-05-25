@@ -64,13 +64,6 @@ export default function Home() {
       wasmSupported ? "/stockfish.wasm.js" : "/stockfish.js"
     );
 
-    stockfishWorker.current.postMessage("position startpos");
-    stockfishWorker.current.postMessage("go depth 10");
-
-    // stockfishWorker.current.onmessage = function (event) {
-    //   console.log("Received from Stockfish:", event.data);
-    // };
-
     function onConnect() {
       setIsConnected(true);
     }
@@ -150,9 +143,13 @@ export default function Home() {
           stockfishWorker.current.onmessage = function (event) {
             const response = event.data;
 
-            // Check if the response starts with "bestmove"
             if (response.startsWith("bestmove")) {
-              resolve(response); // Resolve the promise with the best move
+              // Generate a random delay between 500ms and 1500ms
+              const delay = Math.floor(Math.random() * 1000) + 500;
+
+              setTimeout(() => {
+                resolve(response); // Resolve the promise with the best move
+              }, delay);
             }
           };
 
@@ -227,40 +224,6 @@ export default function Home() {
       );
     }
   }, [selectedPiece]);
-
-  // async function sendMoveAndAwaitBestMove(moveMessage: string) {
-  //   return new Promise((resolve, reject) => {
-  //     // Create a message handler to process Stockfish responses
-  //     stockfishWorker.current.onmessage = function (event) {
-  //       const response = event.data;
-
-  //       // Check if the response starts with "bestmove"
-  //       if (response.startsWith("bestmove")) {
-  //         resolve(response); // Resolve the promise with the best move
-  //       }
-  //     };
-
-  //     // Send the move message to Stockfish
-  //     stockfishWorker.current?.postMessage(
-  //       `position startpos moves ${moveMessage}`
-  //     );
-  //     stockfishWorker.current?.postMessage("go depth 10");
-  //   });
-  // }
-
-  // function makeEngineMove(moveResponse: any) {
-  //   console.log(moveResponse);
-  //   console.log(game.moves());
-  //   try {
-  //     const gameCopy: Chess = new Chess();
-  //     gameCopy.load(game.fen());
-  //     const result = gameCopy.move(moveResponse.split(" ")[1]);
-  //     setGame(gameCopy);
-  //     return result;
-  //   } catch (err) {
-  //     console.log(err);
-  //   }
-  // }
 
   function makeAMove(move: any) {
     try {
