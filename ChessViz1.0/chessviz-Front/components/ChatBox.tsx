@@ -66,7 +66,7 @@ const Chatbox = ({ gameSessionRoom = "" }) => {
 
   const handleCopyToClipboardURL = () => {
     navigator.clipboard.writeText(
-      `https://chessviz.onrender.com/${gameSessionResponse}`
+      `https://chessviz.onrender.com?gameRoom=${gameSessionResponse}`
     );
   };
 
@@ -100,7 +100,7 @@ const Chatbox = ({ gameSessionRoom = "" }) => {
             </p>
             <div className={styles.codeContainer}>
               <span className={styles.gameSessionCode}>
-                {`https://chessviz.onrender.com/${gameSessionResponse}`}
+                {`https://chessviz.onrender.com?gameRoom=${gameSessionResponse}`}
               </span>
               <button
                 className={styles.copyButton}
