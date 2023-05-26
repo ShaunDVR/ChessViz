@@ -9,7 +9,6 @@ const Chatbox = ({ gameSessionRoom = "" }) => {
   >([]);
   const [inputValue, setInputValue] = useState("");
   const [gameSessionResponse, setGameSessionResponse] = useState("");
-  const [isCopied, setIsCopied] = useState(false);
 
   function handleSend() {
     setMessages((prevMessages) => [
@@ -44,7 +43,6 @@ const Chatbox = ({ gameSessionRoom = "" }) => {
     // Function to handle receiving game session response
     const handleGameSessionResponse = (response: string) => {
       setGameSessionResponse(response);
-      setIsCopied(false);
     };
 
     // Subscribe to the game session response event
@@ -64,7 +62,12 @@ const Chatbox = ({ gameSessionRoom = "" }) => {
 
   const handleCopyToClipboard = () => {
     navigator.clipboard.writeText(gameSessionResponse);
-    setIsCopied(true);
+  };
+
+  const handleCopyToClipboardURL = () => {
+    navigator.clipboard.writeText(
+      `https://chessviz.onrender.com/${gameSessionResponse}`
+    );
   };
 
   return (
@@ -88,7 +91,6 @@ const Chatbox = ({ gameSessionRoom = "" }) => {
               <button
                 className={styles.copyButton}
                 onClick={handleCopyToClipboard}
-                disabled={isCopied}
               >
                 <CopyIcon />
               </button>
@@ -102,8 +104,7 @@ const Chatbox = ({ gameSessionRoom = "" }) => {
               </span>
               <button
                 className={styles.copyButton}
-                onClick={handleCopyToClipboard}
-                disabled={isCopied}
+                onClick={handleCopyToClipboardURL}
               >
                 <CopyIcon />
               </button>
