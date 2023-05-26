@@ -1,18 +1,38 @@
 import React, { useState } from "react";
 import styles from "../styles/SettingsBar.module.css";
 
-const SettingsBar = ({ settings }) => {
-  const [dropdownsVisible, setDropdownsVisible] = useState({});
-  const [selectedOptions, setSelectedOptions] = useState({});
+interface Setting {
+  label: string;
+  options: string[];
+}
 
-  const toggleDropdown = (label) => {
+interface DropdownsVisibleState {
+  [label: string]: boolean;
+}
+
+interface SelectedOptionsState {
+  [label: string]: string | undefined;
+}
+
+interface SettingsBarProps {
+  settings: Setting[];
+}
+
+const SettingsBar: React.FC<SettingsBarProps> = ({ settings }) => {
+  const [dropdownsVisible, setDropdownsVisible] =
+    useState<DropdownsVisibleState>({});
+  const [selectedOptions, setSelectedOptions] = useState<SelectedOptionsState>(
+    {}
+  );
+
+  const toggleDropdown = (label: string) => {
     setDropdownsVisible((prevDropdowns) => ({
       ...prevDropdowns,
       [label]: !prevDropdowns[label],
     }));
   };
 
-  const handleOptionChange = (label, option) => {
+  const handleOptionChange = (label: string, option: string) => {
     setSelectedOptions((prevOptions) => ({
       ...prevOptions,
       [label]: option,
