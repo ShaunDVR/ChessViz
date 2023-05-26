@@ -2,15 +2,16 @@ import Head from "next/head";
 import Image from "next/image";
 import { Inter } from "next/font/google";
 import styles from "@/styles/Home.module.css";
-import { Chessboard } from "react-chessboard";
-import { Chess, Move, Piece } from "chess.js";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { socket } from "../socket/socket";
 
+import { Chessboard } from "react-chessboard";
+import { Chess, Move, Piece, PieceSymbol, Square } from "chess.js";
+
 import Chatbox from "../components/ChatBox";
+import SettingsBar from "../components/SettingsBar";
 import SwitchIcon from "../public/double-arrow-svgrepo-com.svg";
-import { PieceSymbol } from "chess.js";
-import { Square } from "chess.js";
+import InfoPanel from "@/components/InfoPanel";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -34,6 +35,9 @@ export default function Home() {
   );
   const [gameSessionRoom, setGameSessionRoom] = useState<string>("");
 
+  const stockfishWorker = useRef<Worker>();
+  let stockfishGameStarted = useRef<boolean>(false);
+
   const [inputValue, setInputValue] = useState<string>();
   const [chessboardHeight, setChessboardHeight] = useState(500);
 
@@ -49,6 +53,18 @@ export default function Home() {
     window.addEventListener("resize", handleResize);
     handleResize(); // Call the resize function initially to set the correct height
 
+    let wasmSupported =
+      typeof WebAssembly === "object" &&
+      WebAssembly.validate(
+        Uint8Array.of(0x0, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00)
+      );
+
+    console.log(wasmSupported);
+
+    stockfishWorker.current = new Worker(
+      wasmSupported ? "/stockfish.wasm.js" : "/stockfish.js"
+    );
+
     function onConnect() {
       setIsConnected(true);
     }
@@ -57,11 +73,15 @@ export default function Home() {
       setIsConnected(false);
     }
 
-    function onMoveRecieved(moveResponse: { gameState: string }) {
+    function onMoveRecieved(moveResponse: { gameState: string; move: Move }) {
       console.log("Hello, I heard", moveResponse, "from the server!");
       if (game.fen() !== moveResponse.gameState) {
         try {
-          setGame(new Chess(moveResponse.gameState));
+          const gameCopy: Chess = new Chess();
+          gameCopy.load(game.fen());
+          const result = gameCopy.move(moveResponse.move);
+          setGame(gameCopy);
+          return result;
         } catch (err) {
           console.log(err);
         }
@@ -109,19 +129,81 @@ export default function Home() {
       socket.off("colorSet", onColorSet);
       socket.off("colorSwitch", onColorSwitch);
       socket.off("gameReset", onGameReset);
+      stockfishWorker.current?.postMessage("quit");
+      stockfishWorker.current?.terminate();
     };
   }, []);
 
   useEffect(() => {
+    let lastMove = game.history({ verbose: true }).pop();
+    let moveMessage = lastMove?.from.concat(lastMove.to);
+    const getEngineMove = async () => {
+      return new Promise((resolve, reject) => {
+        if (stockfishWorker.current) {
+          // Create a message handler to process Stockfish responses
+          stockfishWorker.current.onmessage = function (event) {
+            const response = event.data;
+
+            if (response.startsWith("bestmove")) {
+              // Generate a random delay between 500ms and 1500ms
+              const delay = Math.floor(Math.random() * 1000) + 500;
+
+              setTimeout(() => {
+                resolve(response); // Resolve the promise with the best move
+              }, delay);
+            }
+          };
+
+          // Send the move message to Stockfish
+          stockfishWorker.current?.postMessage("ucinewgame");
+
+          stockfishWorker.current?.postMessage(`position fen ${game.fen()}`);
+
+          stockfishWorker.current?.postMessage("go depth 10");
+        } else {
+          resolve("An Error Occured, there is no running stockfish instance");
+        }
+      });
+    };
+
+    const makeEngineMove = (moveResponse: string) => {
+      try {
+        const gameCopy: Chess = new Chess();
+        gameCopy.load(game.fen());
+        const result = gameCopy.move((moveResponse as string).split(" ")[1]);
+        setGame(gameCopy);
+        return result;
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
     //Work out how to disable in production
 
-    // if (avoidFirstUseEffectRenderFORDEV.current) {
-    //   avoidFirstUseEffectRenderFORDEV.current = false;
-    //   return;
-    // }
+    if (avoidFirstUseEffectRenderFORDEV.current) {
+      avoidFirstUseEffectRenderFORDEV.current = false;
+      return;
+    }
     if (!isConnected) {
       socket.connect();
       socket.emit("gameStart", game.fen());
+    }
+
+    console.log(stockfishGameStarted.current);
+
+    if (
+      gameSessionRoom == "" &&
+      stockfishGameStarted.current &&
+      colorChoice != game.turn().toString()
+    ) {
+      console.log(stockfishGameStarted);
+      getEngineMove()
+        .then((result) => {
+          makeEngineMove(result as string);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
     }
   }, [game]);
 
@@ -156,6 +238,9 @@ export default function Home() {
   }
 
   function onDrop(sourceSquare: string, targetSquare: string): boolean {
+    if (gameSessionRoom == "") {
+      stockfishGameStarted.current = true;
+    }
     if (colorChoice !== game.turn()) {
       return false;
     }
@@ -167,8 +252,17 @@ export default function Home() {
 
     // illegal move
     if (move === null) return false;
-    socket.emit("moveMade", { move: move, roomId: gameSessionRoom });
-    return true;
+    if (move != false) {
+      let stockfishMove = move.from.concat(move.to);
+      // if (gameSessionRoom == "") {
+      //   let bestMove = await sendMoveAndAwaitBestMove(stockfishMove);
+      //   makeEngineMove(bestMove);
+      // }
+      socket.emit("moveMade", { move: move, roomId: gameSessionRoom });
+      return true;
+    } else {
+      return false;
+    }
   }
 
   function toggleActiveColor(fen: string) {
@@ -389,22 +483,18 @@ export default function Home() {
         </div>
 
         <div className={styles.chatboxWrapper}>
+          {/* Unsure if needed right now */}
+          {/* <SettingsBar settings={[{ label: "hello", options: ["hello"] }]} /> */}
           <Chatbox gameSessionRoom={gameSessionRoom} />
         </div>
-        {gameSessionRoom === "" && (
-          <div className={styles.inputWrapper}>
-            <input
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-            />
-          </div>
-        )}
-        {gameSessionRoom === "" && (
-          <div className={styles.buttonWrapper}>
-            <button onClick={handleButtonClick}>Join Game</button>
-          </div>
-        )}
+        <div className={styles.infoPanelWrapper}>
+          <InfoPanel
+            gameSessionRoom={gameSessionRoom}
+            inputValue={inputValue ? inputValue : ""}
+            onInputChange={(e) => setInputValue(e.target.value)}
+            onButtonClick={handleButtonClick}
+          />
+        </div>
       </div>
     </div>
   );

@@ -7,7 +7,7 @@ const server = http.createServer(app);
 const { Server } = require("socket.io");
 const io = new Server(server, {
   cors: {
-    origin: "https://chessviz.onrender.com",
+    origin: "http://localhost:3000",
   },
 });
 
@@ -90,7 +90,6 @@ io.on("connection", (socket) => {
   });
 
   socket.on("moveMade", (msg) => {
-    console.log(msg);
     const gameState = gameStates.get(msg.roomId + "room");
     if (!gameState) {
       console.log("Game state not found for the client");
@@ -99,12 +98,14 @@ io.on("connection", (socket) => {
 
     try {
       gameState.move(msg.move);
+      console.log(msg.move);
       console.log(gameState.ascii());
       // Broadcast the updated game state to all clients in the same room
       io.to(msg.roomId + "room").emit("moveResponse", {
         success: true,
         message: "Move executed successfully",
         gameState: gameState.fen(),
+        move: msg.move,
       });
     } catch (error) {
       console.log(error);

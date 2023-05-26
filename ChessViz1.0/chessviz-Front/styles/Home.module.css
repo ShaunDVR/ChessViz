@@ -15,6 +15,13 @@
 }
 
 .chatboxWrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.infoPanelWrapper {
+  display: flex;
   height: 100%;
 }
 
