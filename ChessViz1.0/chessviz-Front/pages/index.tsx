@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 import styles from "@/styles/Home.module.css";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { socket } from "../socket/socket";
+import Router, { useRouter } from "next/router";
 
 import { Chessboard } from "react-chessboard";
 import { Chess, Move, Piece, PieceSymbol, Square } from "chess.js";
@@ -21,6 +22,9 @@ interface SelectedPiece {
 }
 
 export default function Home() {
+  const router = useRouter();
+  const { gameRoom } = router.query;
+
   const [game, setGame] = useState<Chess>(() => new Chess());
   const [colorChoice, setColorChoice] = useState<string>("w");
   const [selectedPiece, setSelectedPiece] = useState<SelectedPiece>(() => ({
@@ -133,6 +137,14 @@ export default function Home() {
       stockfishWorker.current?.terminate();
     };
   }, []);
+
+  useEffect(() => {
+    if (gameRoom) {
+      socket.emit("requestJoinGame", gameRoom, (gameStateResponse: string) => {
+        console.log(gameStateResponse);
+      });
+    }
+  }, [gameRoom]);
 
   useEffect(() => {
     let lastMove = game.history({ verbose: true }).pop();
@@ -444,7 +456,7 @@ export default function Home() {
     });
   }
 
-  function handleButtonClick() {
+  function joinGameroom() {
     socket.emit("requestJoinGame", inputValue, (gameStateResponse: string) => {
       console.log(gameStateResponse);
     });
@@ -492,7 +504,7 @@ export default function Home() {
             gameSessionRoom={gameSessionRoom}
             inputValue={inputValue ? inputValue : ""}
             onInputChange={(e) => setInputValue(e.target.value)}
-            onButtonClick={handleButtonClick}
+            onButtonClick={joinGameroom}
           />
         </div>
       </div>
