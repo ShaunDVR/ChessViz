@@ -100,7 +100,7 @@ const Chatbox = ({ gameSessionRoom = "" }) => {
             </p>
             <div className={styles.codeContainer}>
               <span className={styles.gameSessionCode}>
-                {`https://chessviz.onrender.com?gameRoom=${gameSessionResponse}`}
+                {`Copy the URL ->`}
               </span>
               <button
                 className={styles.copyButton}
