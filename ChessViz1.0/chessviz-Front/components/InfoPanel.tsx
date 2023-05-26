@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "../styles/InfoPanel.module.css";
+import styles from "../styles/InfoPane.module.css";
 
 type InfoPanelProps = {
   gameSessionRoom: string;
