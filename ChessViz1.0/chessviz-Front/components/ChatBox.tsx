@@ -77,12 +77,28 @@ const Chatbox = ({ gameSessionRoom = "" }) => {
         )}
         {gameSessionRoom === "" && (
           <div className={styles.gameSessionResponseContainer}>
-            <div className={styles.gameSessionResponse}>
-              To play a game against a friend, use this code:
-            </div>
+            <p className={styles.gameSessionResponse}>
+              To play a game against a friend,
+            </p>
+            <p className={styles.gameSessionResponse}>use this code:</p>
             <div className={styles.codeContainer}>
               <span className={styles.gameSessionCode}>
                 {gameSessionResponse}
+              </span>
+              <button
+                className={styles.copyButton}
+                onClick={handleCopyToClipboard}
+                disabled={isCopied}
+              >
+                <CopyIcon />
+              </button>
+            </div>
+            <p className={styles.gameSessionResponse}>
+              or give them this link!
+            </p>
+            <div className={styles.codeContainer}>
+              <span className={styles.gameSessionCode}>
+                {`https://chessviz.onrender.com/${gameSessionResponse}`}
               </span>
               <button
                 className={styles.copyButton}
@@ -101,7 +117,6 @@ const Chatbox = ({ gameSessionRoom = "" }) => {
               msg.sender === "own" ? styles.ownMessage : styles.otherMessage
             }`}
           >
-            <strong>{msg.sender}: </strong>
             {msg.content}
           </div>
         ))}

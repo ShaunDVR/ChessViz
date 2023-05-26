@@ -90,7 +90,7 @@
   align-items: center;
 }
 
-.gameSessionResponse {
+.gameSessionResponse:not(:first-child) {
   /* Additional styles for the game session response text */
   margin-bottom: 10px;
 }
@@ -127,6 +127,7 @@
 .codeContainer {
   display: flex;
   align-items: center;
+  margin-bottom: 20px;
 }
 
 .gameSessionCode {
