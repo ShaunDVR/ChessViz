@@ -283,14 +283,7 @@ export default function Home() {
       promotion: "q", // always promote to a queen for example simplicity
     });
 
-    // // illegal move
-    // if (move === null) return false;
-    // if (move != false) {
-    //   socket.emit("moveMade", { move: move, roomId: gameSessionRoom });
-    //   return true;
-    // } else {
-    //   return false;
-    // }
+    return move == null ? false : true;
   }
 
   function toggleActiveColor(fen: string) {
