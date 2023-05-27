@@ -8,6 +8,7 @@ const { Server } = require("socket.io");
 const io = new Server(server, {
   cors: {
     origin: "https://chessviz.onrender.com",
+    // origin: "http://localhost:3000",
   },
 });
 

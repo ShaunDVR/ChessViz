@@ -77,15 +77,30 @@ export default function Home() {
       setIsConnected(false);
     }
 
-    function onMoveRecieved(moveResponse: { gameState: string; move: Move }) {
+    //Breaking but this option logically is better as it maintains the move history
+    // function onMoveRecieved(moveResponse: { gameState: string; move: Move }) {
+    //   console.log("current game fen:", game.fen());
+    //   console.log("Hello, I heard", moveResponse, "from the server!");
+    //   if (game.fen() !== moveResponse.gameState) {
+    //     try {
+    //       console.log("current game", game);
+    //       const gameCopy: Chess = new Chess();
+    //       gameCopy.load(game.fen());
+    //       const result = gameCopy.move(moveResponse.move);
+    //       console.log(gameCopy);
+    //       setGame(gameCopy);
+    //       return result;
+    //     } catch (err) {
+    //       console.log(err);
+    //     }
+    //   }
+    // }
+
+    function onMoveRecieved(moveResponse: { gameState: string }) {
       console.log("Hello, I heard", moveResponse, "from the server!");
       if (game.fen() !== moveResponse.gameState) {
         try {
-          const gameCopy: Chess = new Chess();
-          gameCopy.load(game.fen());
-          const result = gameCopy.move(moveResponse.move);
-          setGame(gameCopy);
-          return result;
+          setGame(new Chess(moveResponse.gameState));
         } catch (err) {
           console.log(err);
         }
@@ -112,6 +127,7 @@ export default function Home() {
     }
 
     function onGameReset() {
+      console.log("game was reset");
       setGame(new Chess());
     }
 
@@ -147,8 +163,7 @@ export default function Home() {
   }, [gameRoom]);
 
   useEffect(() => {
-    let lastMove = game.history({ verbose: true }).pop();
-    let moveMessage = lastMove?.from.concat(lastMove.to);
+    console.log(game.fen());
     const getEngineMove = async () => {
       return new Promise((resolve, reject) => {
         if (stockfishWorker.current) {
@@ -196,12 +211,10 @@ export default function Home() {
     //   avoidFirstUseEffectRenderFORDEV.current = false;
     //   return;
     // }
-    if (!isConnected) {
+    if (!isConnected && !gameSessionRoom) {
       socket.connect();
       socket.emit("gameStart", game.fen());
     }
-
-    console.log(stockfishGameStarted.current);
 
     if (
       gameSessionRoom == "" &&
@@ -216,6 +229,14 @@ export default function Home() {
         .catch((err) => {
           console.log(err);
         });
+    }
+
+    if (gameSessionRoom) {
+      console.log(game.history()[game.history().length - 1]);
+      socket.emit("moveMade", {
+        move: game.history()[game.history().length - 1],
+        roomId: gameSessionRoom,
+      });
     }
   }, [game]);
 
@@ -262,19 +283,14 @@ export default function Home() {
       promotion: "q", // always promote to a queen for example simplicity
     });
 
-    // illegal move
-    if (move === null) return false;
-    if (move != false) {
-      let stockfishMove = move.from.concat(move.to);
-      // if (gameSessionRoom == "") {
-      //   let bestMove = await sendMoveAndAwaitBestMove(stockfishMove);
-      //   makeEngineMove(bestMove);
-      // }
-      socket.emit("moveMade", { move: move, roomId: gameSessionRoom });
-      return true;
-    } else {
-      return false;
-    }
+    // // illegal move
+    // if (move === null) return false;
+    // if (move != false) {
+    //   socket.emit("moveMade", { move: move, roomId: gameSessionRoom });
+    //   return true;
+    // } else {
+    //   return false;
+    // }
   }
 
   function toggleActiveColor(fen: string) {
