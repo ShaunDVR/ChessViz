@@ -8,7 +8,7 @@ const { Server } = require("socket.io");
 const io = new Server(server, {
   cors: {
     origin: "https://chessviz.onrender.com",
-    // origin: "http://localhost:3000",
+    origin: "http://localhost:3000",
   },
 });
 
@@ -90,7 +90,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("moveMade", (msg) => {
+  socket.on("moveMade", async (msg) => {
     const gameState = gameStates.get(msg.roomId + "room");
     if (!gameState) {
       console.log("Game state not found for the client");
@@ -101,12 +101,26 @@ io.on("connection", (socket) => {
       gameState.move(msg.move);
       console.log(msg.move);
       console.log(gameState.ascii());
+      console.log(gameState.history());
       // Broadcast the updated game state to all clients in the same room
-      io.to(msg.roomId + "room").emit("moveResponse", {
-        success: true,
-        message: "Move executed successfully",
-        gameState: gameState.fen(),
-        move: msg.move,
+      // io.to(msg.roomId + "room").emit("moveResponse", {
+      //   success: true,
+      //   message: "Move executed successfully",
+      //   gameState: gameState.fen(),
+      //   move: msg.move,
+      // });
+
+      let clients = await io.in(msg.roomId + "room").fetchSockets();
+      clients.forEach((user) => {
+        if (user.id != socket.id) {
+          console.log("socket sent to", user.id, "msg sent by", socket.id);
+          io.to(msg.roomId + "room").emit("moveResponse", {
+            success: true,
+            message: "Move executed successfully",
+            gameState: gameState.fen(),
+            move: msg.move,
+          });
+        }
       });
     } catch (error) {
       console.log(error);
